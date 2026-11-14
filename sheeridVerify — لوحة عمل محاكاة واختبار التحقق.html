@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sheeridVerify — لوحة عمل محاكاة واختبار التحقق</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
+          SV
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-sm sm:text-base text-slate-900 truncate" dir="ltr">sheeridVerify</h1>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+              HTML Workbench
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 truncate hidden sm:block">منصة تعليمية وبحثية لمحاكاة وإدارة طابور مهام التحقق</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btn-session-status" type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+          <span id="session-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="session-label">الجلسة نشطة</span>
+        </button>
+
+        <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
+          <span>التزامن:</span>
+          <span id="header-concurrency" class="font-mono-code font-semibold text-indigo-600" dir="ltr">0 / 1</span>
+        </div>
+
+        <nav class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+          <button id="tab-workbench" type="button" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
+            لوحة العمل
+          </button>
+          <button id="tab-config" type="button" class="px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+            الإعدادات
+          </button>
+          <button id="tab-docs" type="button" class="px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+            الدليل
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Educational Disclaimer Banner -->
+  <div class="bg-amber-50 border-b border-amber-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3 text-xs text-amber-900">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>
+          <strong>بيئة محاكاة تعليمية وبحثية (HTML):</strong> تعمل هذه الواجهة محلياً داخل المتصفح لمحاكاة دورة عمل
+          <span class="font-mono-code font-semibold" dir="ltr">JenkinWoo/sheeridVerify</span>
+          (إدارة الطابور، التزامن، السجلات، والإعدادات) دون الاتصال بخوادم خلفية أو أتمتة متصفح حقيقية.
+        </span>
+      </div>
+      <button id="btn-load-sample" type="button" class="shrink-0 px-2.5 py-1 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold transition-colors">
+        تعبئة بيانات تجريبية
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- VIEW 1: WORKBENCH -->
+    <section id="view-workbench" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+      <!-- Create Job Form -->
+      <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">إنشاء مهمة جديدة</h2>
+            <p class="text-[11px] text-slate-500 font-mono-code" dir="ltr">POST /api/jobs</p>
+          </div>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            جاهز للإدخال
+          </span>
+        </div>
+
+        <form id="job-form" class="p-5 space-y-4">
+          <div>
+            <label for="input-url" class="block text-xs font-semibold text-slate-700 mb-1">
+              رابط التحقق <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="input-url"
+              type="url"
+              dir="ltr"
+              required
+              placeholder="https://services.sheerid.com/verify/67c8c14f/?verificationId=67c8c14f9a1b2c3d"
+              class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            />
+            <div class="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+              <span>يتم استخراج <span class="font-mono-code" dir="ltr">verificationId</span> تلقائياً كمعرف فريد.</span>
+              <span id="parsed-id-badge" class="hidden font-mono-code text-indigo-600 font-medium" dir="ltr"></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="input-first-name" class="block text-xs font-semibold text-slate-700 mb-1">
+                الاسم الأول (First Name) <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-first-name"
+                type="text"
+                dir="ltr"
+                required
+                placeholder="Test"
+                class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label for="input-last-name" class="block text-xs font-semibold text-slate-700 mb-1">
+                اسم العائلة (Last Name) <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-last-name"
+                type="text"
+                dir="ltr"
+                required
+                placeholder="Student"
+                class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-medium text-slate-600 shrink-0">البريد المولّد تلقائياً:</span>
+            <span id="preview-email" class="text-xs font-mono-code text-indigo-700 font-medium truncate" dir="ltr">first.last@stanford.edu</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="input-birth-date" class="block text-xs font-semibold text-slate-700 mb-1">
+                تاريخ الميلاد <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-birth-date"
+                type="date"
+                dir="ltr"
+                required
+                class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label for="input-proxy" class="block text-xs font-semibold text-slate-700 mb-1">
+                البروكسي (اختياري)
+              </label>
+              <input
+                id="input-proxy"
+                type="text"
+                dir="ltr"
+                placeholder="اتصال مباشر (فارغ) أو socks5://..."
+                class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label for="input-sim-mode" class="block text-xs font-semibold text-slate-700 mb-1">
+                سيناريو المحاكاة
+              </label>
+              <select id="input-sim-mode" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="verified">نجاح كامل (Form → docUpload → Verified)</option>
+                <option value="doc_retry">إعادة طلب مستند ثم نجاح (Rejection → Retry)</option>
+                <option value="email_loop">انتظار تأكيد البريد (emailLoop)</option>
+                <option value="failed">فشل التحقق (docReviewLimitExceeded)</option>
+              </select>
+            </div>
+            <div>
+              <label for="input-password" class="block text-xs font-semibold text-slate-700 mb-1">
+                كلمة مرور الوصول
+              </label>
+              <input
+                id="input-password"
+                type="password"
+                dir="ltr"
+                value="JenkinWoo"
+                placeholder="JenkinWoo"
+                class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          <div class="pt-2 flex items-center gap-2">
+            <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              إضافة إلى الطابور (Join Queue)
+            </button>
+            <button id="btn-clear-form" type="button" class="px-3 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors">
+              مسح
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Queue & Inspector -->
+      <div class="lg:col-span-7 space-y-5">
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-bold text-slate-900">طابور المهام</h2>
+              <span id="queue-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-mono-code font-semibold bg-slate-200 text-slate-700">0</span>
+            </div>
+
+            <div class="flex items-center gap-1 text-[11px]">
+              <button data-filter="all" type="button" class="filter-btn px-2 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700">الكل</button>
+              <button data-filter="active" type="button" class="filter-btn px-2 py-1 rounded-md font-medium text-slate-600 hover:bg-slate-100">نشط</button>
+              <button data-filter="verified" type="button" class="filter-btn px-2 py-1 rounded-md font-medium text-slate-600 hover:bg-slate-100">مكتمل</button>
+              <button data-filter="stopped" type="button" class="filter-btn px-2 py-1 rounded-md font-medium text-slate-600 hover:bg-slate-100">متوقف/فاشل</button>
+            </div>
+          </div>
+
+          <div id="queue-list" class="divide-y divide-slate-100 max-h-64 overflow-y-auto"></div>
+        </div>
+
+        <div id="inspector-card" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-bold text-slate-900">تفاصيل المهمة والسجل</h2>
+                <span id="inspector-status-badge" class="hidden px-2 py-0.5 rounded-full text-[11px] font-semibold"></span>
+              </div>
+              <p id="inspector-job-id" class="text-[11px] text-slate-500 font-mono-code truncate" dir="ltr">اختر مهمة من الطابور لعرض التفاصيل</p>
+            </div>
+
+            <div id="inspector-actions" class="hidden flex items-center gap-1.5">
+              <button id="btn-job-stop" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors">
+                إيقاف
+              </button>
+              <button id="btn-job-resume" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+                استئناف
+              </button>
+              <button id="btn-job-delete" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors">
+                حذف
+              </button>
+            </div>
+          </div>
+
+          <div id="inspector-empty" class="p-8 text-center text-slate-400 text-xs">
+            لا توجد مهمة محددة حالياً. أضف مهمة جديدة أو اختر مهمة من الطابور أعلاه.
+          </div>
+
+          <div id="inspector-body" class="hidden p-5 space-y-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+              <div id="step-status" class="p-2 rounded-lg border text-[11px] font-medium">1. فحص الحالة</div>
+              <div id="step-browser" class="p-2 rounded-lg border text-[11px] font-medium">2. تعبئة النموذج</div>
+              <div id="step-upload" class="p-2 rounded-lg border text-[11px] font-medium">3. رفع المستند</div>
+              <div id="step-result" class="p-2 rounded-lg border text-[11px] font-medium">4. النتيجة النهائية</div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200/70 text-xs">
+              <div>
+                <span class="block text-[10px] text-slate-500">الاسم الكامل</span>
+                <span id="meta-name" class="font-semibold text-slate-800" dir="ltr">-</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-500">البريد المولّد</span>
+                <span id="meta-email" class="font-mono-code text-[11px] text-slate-800 truncate block" dir="ltr">-</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-500">تاريخ الميلاد</span>
+                <span id="meta-dob" class="font-mono-code text-slate-800" dir="ltr">-</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-500">الاتصال / البروكسي</span>
+                <span id="meta-proxy" class="font-mono-code text-[11px] text-slate-800 truncate block" dir="ltr">-</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-300 bg-slate-50/50 text-xs">
+              <div class="flex items-center gap-2 text-slate-600">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                <span id="meta-doc-source">مصدر المستند: حسب الإعدادات</span>
+              </div>
+              <label class="cursor-pointer px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-semibold text-slate-700">
+                اختبار ملف (PNG/JPEG/PDF)
+                <input id="input-doc-file" type="file" accept=".png,.jpg,.jpeg,.pdf" class="hidden" />
+              </label>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-bold text-slate-700">سجل التنفيذ المباشر (Activity Logs)</span>
+                <span id="polling-indicator" class="text-[11px] text-slate-400 font-mono-code"></span>
+              </div>
+              <div id="inspector-logs" dir="ltr" class="bg-slate-900 text-slate-100 rounded-lg p-3 h-48 overflow-y-auto font-mono-code text-[11px] leading-relaxed space-y-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: CONFIG -->
+    <section id="view-config" class="hidden max-w-4xl mx-auto bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/60">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">إعدادات العمل (<span class="font-mono-code text-sm" dir="ltr">config/sheerid.local.json</span>)</h2>
+          <p class="text-xs text-slate-500">تُقرأ هذه الإعدادات عند إضافة أو تشغيل كل مهمة جديدة.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-reset-config" type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            استعادة الافتراضي
+          </button>
+          <button id="btn-export-config" type="button" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800">
+            تصدير JSON
+          </button>
+        </div>
+      </div>
+
+      <form id="config-form" class="p-6 space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="cfg-country" class="block text-xs font-semibold text-slate-700 mb-1">الدولة (Country)</label>
+            <input id="cfg-country" type="text" dir="ltr" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label for="cfg-org-name" class="block text-xs font-semibold text-slate-700 mb-1">اسم المؤسسة / الجامعة</label>
+            <input id="cfg-org-name" type="text" dir="ltr" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label for="cfg-email-domain" class="block text-xs font-semibold text-slate-700 mb-1">نطاق البريد (<span class="font-mono-code">emailDomain</span>)</label>
+            <input id="cfg-email-domain" type="text" dir="ltr" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="cfg-concurrency" class="block text-xs font-semibold text-slate-700 mb-1">حد التزامن (<span class="font-mono-code">web.concurrency</span>)</label>
+            <input id="cfg-concurrency" type="number" min="1" max="10" dir="ltr" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label for="cfg-polling" class="block text-xs font-semibold text-slate-700 mb-1">فاصل الاستعلام (ms)</label>
+            <input id="cfg-polling" type="number" min="1000" max="300000" step="500" dir="ltr" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label for="cfg-ready-timeout" class="block text-xs font-semibold text-slate-700 mb-1">مهلة جاهزية العناصر (ms)</label>
+            <input id="cfg-ready-timeout" type="number" min="5000" max="300000" step="1000" dir="ltr" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="cfg-doc-path" class="block text-xs font-semibold text-slate-700 mb-1">مسار المستند المحلي (<span class="font-mono-code">document.path</span>)</label>
+            <input id="cfg-doc-path" type="text" dir="ltr" placeholder="C:/Documents/student-proof.png" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label for="cfg-doc-url" class="block text-xs font-semibold text-slate-700 mb-1">رابط المستند الشبكي (<span class="font-mono-code">document.url</span>)</label>
+            <input id="cfg-doc-url" type="url" dir="ltr" placeholder="https://school.example.edu/proof?id=123" class="w-full px-3 py-2 text-xs font-mono-code bg-slate-50 border border-slate-200 rounded-lg" />
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500">ملاحظة: وفق مواصفات المشروع، يجب تعبئة <span class="font-mono-code" dir="ltr">document.path</span> أو <span class="font-mono-code" dir="ltr">document.url</span> فقط (وليس كليهما معاً).</p>
+
+        <div class="flex flex-wrap items-center gap-6 pt-1">
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+            <input id="cfg-autofill" type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+            <span>تفعيل التعبئة التلقائية (<span class="font-mono-code">browser.autoFill</span>)</span>
+          </label>
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+            <input id="cfg-keepopen" type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+            <span>إبقاء نافذة المتصفح مفتوحة عند الانتظار (<span class="font-mono-code">browser.keepOpen</span>)</span>
+          </label>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-500">كلمة المرور الافتراضية للوضع المحلي: <code class="font-mono-code bg-slate-100 px-1.5 py-0.5 rounded">JenkinWoo</code></span>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors">
+            حفظ الإعدادات
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 3: DOCS & API REFERENCE -->
+    <section id="view-docs" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <h2 class="text-base font-bold text-slate-900">دليل البنية والواجهات البرمجية (<span class="font-mono-code" dir="ltr">sheeridVerify</span>)</h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          يعتمد المشروع الأصلي على <strong>Node.js &ge; 22.15</strong> مع متصفح <strong>Camoufox</strong> لتعبئة النماذج واستخدام واجهة <span class="font-mono-code">fetch</span> المدمجة للاستعلام عن الحالة ورفع المستندات دون تعديلها. تحاكي هذه الصفحة واجهة الويب المحلية (<span class="font-mono-code" dir="ltr">http://127.0.0.1:8787</span>) بالكامل داخل المتصفح.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <h3 class="text-xs font-bold text-slate-800">نقاط النهاية (REST API)</h3>
+            <ul class="text-[11px] font-mono-code text-slate-700 space-y-1.5" dir="ltr">
+              <li><span class="text-emerald-600 font-bold">GET</span> /api/session <span class="text-slate-400">→ X-Local-Token</span></li>
+              <li><span class="text-indigo-600 font-bold">POST</span> /api/jobs <span class="text-slate-400">→ Enqueue job</span></li>
+              <li><span class="text-amber-600 font-bold">POST</span> /api/jobs/:id/cancel <span class="text-slate-400">→ Stop job</span></li>
+              <li><span class="text-indigo-600 font-bold">POST</span> /api/jobs/:id/resume <span class="text-slate-400">→ Re-queue</span></li>
+              <li><span class="text-rose-600 font-bold">DELETE</span> /api/jobs/:id <span class="text-slate-400">→ Remove history</span></li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <h3 class="text-xs font-bold text-slate-800">أوامر سطر الأوامر (CLI)</h3>
+            <ul class="text-[11px] font-mono-code text-slate-700 space-y-1.5" dir="ltr">
+              <li>npm run web <span class="text-slate-400"># Start local workbench</span></li>
+              <li>npm start <span class="text-slate-400"># Fill form without submit</span></li>
+              <li>npm run status <span class="text-slate-400"># One-shot status check</span></li>
+              <li>npm run submit -- --file proof.png</li>
+              <li>npm test <span class="text-slate-400"># Run mock test suite</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY_CFG = 'sheerid_verify_config_v1';
+      const STORAGE_KEY_JOBS = 'sheerid_verify_jobs_v1';
+
+      const DEFAULT_CONFIG = {
+        country: 'US',
+        organizationName: 'Stanford University',
+        emailDomain: 'stanford.edu',
+        concurrency: 1,
+        pollingMs: 3000,
+        readyMs: 120000,
+        docPath: 'C:/Documents/student-proof.png',
+        docUrl: '',
+        autoFill: true,
+        keepOpen: false,
+        password: 'JenkinWoo'
+      };
+
+      const STATUS_META = {
+        queued: { label: 'في الانتظار', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
+        running: { label: 'قيد التنفيذ', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+        docUpload: { label: 'رفع المستند', cls: 'bg-sky-50 text-sky-700 border-sky-200' },
+        pending: { label: 'قيد المراجعة', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+        emailLoop: { label: 'انتظار البريد', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+        verified: { label: 'تم التحقق', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        failed: { label: 'فشل', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+        stopped: { label: 'متوقف', cls: 'bg-slate-100 text-slate-600 border-slate-300' }
+      };
+
+      let config = loadConfig();
+      let jobs = loadJobs();
+      let selectedJobId = jobs.length > 0 ? jobs[0].id : null;
+      let currentFilter = 'all';
+      let sessionAuthenticated = true;
+      const timers = new Map();
+
+      const tabWorkbench = document.getElementById('tab-workbench');
+      const tabConfig = document.getElementById('tab-config');
+      const tabDocs = document.getElementById('tab-docs');
+      const viewWorkbench = document.getElementById('view-workbench');
+      const viewConfig = document.getElementById('view-config');
+      const viewDocs = document.getElementById('view-docs');
+
+      const jobForm = document.getElementById('job-form');
+      const inputUrl = document.getElementById('input-url');
+      const inputFirstName = document.getElementById('input-first-name');
+      const inputLastName = document.getElementById('input-last-name');
+      const inputBirthDate = document.getElementById('input-birth-date');
+      const inputProxy = document.getElementById('input-proxy');
+      const inputSimMode = document.getElementById('input-sim-mode');
+      const inputPassword = document.getElementById('input-password');
+      const previewEmail = document.getElementById('preview-email');
+      const parsedIdBadge = document.getElementById('parsed-id-badge');
+
+      const queueList = document.getElementById('queue-list');
+      const queueCountBadge = document.getElementById('queue-count-badge');
+      const headerConcurrency = document.getElementById('header-concurrency');
+
+      const inspectorEmpty = document.getElementById('inspector-empty');
+      const inspectorBody = document.getElementById('inspector-body');
+      const inspectorActions = document.getElementById('inspector-actions');
+      const inspectorJobId = document.getElementById('inspector-job-id');
+      const inspectorStatusBadge = document.getElementById('inspector-status-badge');
+      const inspectorLogs = document.getElementById('inspector-logs');
+      const pollingIndicator = document.getElementById('polling-indicator');
+
+      const btnJobStop = document.getElementById('btn-job-stop');
+      const btnJobResume = document.getElementById('btn-job-resume');
+      const btnJobDelete = document.getElementById('btn-job-delete');
+      const inputDocFile = document.getElementById('input-doc-file');
+
+      const configForm = document.getElementById('config-form');
+
+      function loadConfig() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_CFG);
+          if (raw) return Object.assign({}, DEFAULT_CONFIG, JSON.parse(raw));
+        } catch (e) {}
+        return Object.assign({}, DEFAULT_CONFIG);
+      }
+
+      function saveConfig() {
+        try {
+          localStorage.setItem(STORAGE_KEY_CFG, JSON.stringify(config));
+        } catch (e) {}
+      }
+
+      function loadJobs() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_JOBS);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              return parsed.map(j => {
+                if (j.status === 'running' || j.status === 'docUpload' || j.status === 'pending') {
+                  j.status = 'stopped';
+                  j.logs.push(formatLog('SESSION_RELOAD', 'تم إيقاف المهمة عند إعادة تحميل الصفحة.'));
+                }
+                return j;
+              });
+            }
+          }
+        } catch (e) {}
+        return [];
+      }
+
+      function saveJobs() {
+        try {
+          localStorage.setItem(STORAGE_KEY_JOBS, JSON.stringify(jobs));
+        } catch (e) {}
+      }
+
+      function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const colors = {
+          success: 'bg-emerald-600 text-white',
+          error: 'bg-rose-600 text-white',
+          warning: 'bg-amber-600 text-white',
+          info: 'bg-slate-800 text-white'
+        };
+        toast.className = 'px-4 py-2.5 rounded-lg shadow-lg text-xs font-medium flex items-center gap-2 transition-all ' + (colors[type] || colors.info);
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add('opacity-0');
+          setTimeout(() => toast.remove(), 250);
+        }, 3200);
+      }
+
+      function formatTime() {
+        const d = new Date();
+        return d.toTimeString().slice(0, 8);
+      }
+
+      function formatLog(code, msg) {
+        return { time: formatTime(), code: code, msg: msg };
+      }
+
+      function extractVerificationId(urlStr) {
+        try {
+          const u = new URL(urlStr);
+          const vId = u.searchParams.get('verificationId');
+          if (vId && vId.trim()) return vId.trim();
+          const parts = u.pathname.split('/').filter(Boolean);
+          if (parts.length > 0) return parts[parts.length - 1];
+        } catch (e) {}
+        return null;
+      }
+
+      function generateEmail(first, last, domain) {
+        const f = (first || 'first').trim().toLowerCase().replace(/[^a-z0-9]/g, '') || 'first';
+        const l = (last || 'last').trim().toLowerCase().replace(/[^a-z0-9]/g, '') || 'last';
+        const d = (domain || 'stanford.edu').trim().toLowerCase();
+        return f + '.' + l + '@' + d;
+      }
+
+      function updateEmailPreview() {
+        previewEmail.textContent = generateEmail(inputFirstName.value, inputLastName.value, config.emailDomain);
+      }
+
+      function updateUrlPreview() {
+        const id = extractVerificationId(inputUrl.value);
+        if (id) {
+          parsedIdBadge.textContent = 'ID: ' + id;
+          parsedIdBadge.classList.remove('hidden');
+        } else {
+          parsedIdBadge.classList.add('hidden');
+        }
+      }
+
+      function switchTab(target) {
+        const tabs = [
+          { btn: tabWorkbench, view: viewWorkbench, key: 'workbench' },
+          { btn: tabConfig, view: viewConfig, key: 'config' },
+          { btn: tabDocs, view: viewDocs, key: 'docs' }
+        ];
+        tabs.forEach(t => {
+          if (t.key === target) {
+            t.view.classList.remove('hidden');
+            t.btn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all';
+          } else {
+            t.view.classList.add('hidden');
+            t.btn.className = 'px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all';
+          }
+        });
+      }
+
+      function isActiveStatus(status) {
+        return status === 'running' || status === 'docUpload' || status === 'pending' || status === 'emailLoop';
+      }
+
+      function getActiveCount() {
+        return jobs.filter(j => isActiveStatus(j.status)).length;
+      }
+
+      function scheduleQueue() {
+        const active = getActiveCount();
+        const available = Math.max(0, config.concurrency - active);
+        if (available <= 0) {
+          renderAll();
+          return;
+        }
+        const queuedJobs = jobs.filter(j => j.status === 'queued');
+        for (let i = 0; i < Math.min(available, queuedJobs.length); i++) {
+          startJobExecution(queuedJobs[i]);
+        }
+        renderAll();
+      }
+
+      function clearJobTimer(jobId) {
+        if (timers.has(jobId)) {
+          clearTimeout(timers.get(jobId));
+          timers.delete(jobId);
+        }
+      }
+
+      function startJobExecution(job) {
+        clearJobTimer(job.id);
+        job.status = 'running';
+        job.step = 1;
+        job.logs.push(formatLog('JOB_START', 'Started worker with snapshot concurrency=' + config.concurrency + ', country=' + config.country));
+        job.logs.push(formatLog('STATUS_CHECK', 'GET /rest/v2/verification/' + job.id + ' -> currentStep: collectStudentPersonalInfo'));
+        saveJobs();
+        renderAll();
+
+        const t1 = setTimeout(() => {
+          if (job.status !== 'running') return;
+          job.step = 2;
+          if (job.autoFill) {
+            job.logs.push(formatLog('BROWSER_LAUNCH', 'Camoufox launched (' + (job.proxy ? 'Proxy: ' + job.proxy : 'Direct connection') + ')'));
+            job.logs.push(formatLog('OPTIONS_LOADING', 'Selecting organization: ' + job.organizationName));
+            job.logs.push(formatLog('OPTION_COMMIT_PENDING', 'Filled ' + job.firstName + ' ' + job.lastName + ' <' + job.email + '>'));
+            job.logs.push(formatLog('FORM_SUBMIT', 'Submitted student form, awaiting docUpload handoff...'));
+          } else {
+            job.logs.push(formatLog('MANUAL_FILL', 'browser.autoFill=false; waiting for manual form submission.'));
+          }
+          saveJobs();
+          renderAll();
+
+          const t2 = setTimeout(() => {
+            if (job.status !== 'running') return;
+            job.status = 'docUpload';
+            job.step = 3;
+            job.logs.push(formatLog('DOCUMENT_HANDOFF', 'browser_closed / Entered docUpload step.'));
+            job.logs.push(formatLog('DOC_FETCH', 'Loaded original document (' + job.docSourceLabel + ') without modification.'));
+            job.logs.push(formatLog('DOC_UPLOAD', 'POST uploadUrl -> HTTP 200 OK.'));
+            saveJobs();
+            renderAll();
+
+            const t3 = setTimeout(() => {
+              if (job.status !== 'docUpload') return;
+              if (job.simMode === 'email_loop') {
+                job.status = 'emailLoop';
+                job.step = 3;
+                job.logs.push(formatLog('POLLING_STATUS', 'currentStep: emailLoop (Awaiting user email confirmation)'));
+                saveJobs();
+                renderAll();
+                return;
+              }
+
+              job.status = 'pending';
+              job.step = 3;
+              job.logs.push(formatLog('POLLING_STATUS', 'currentStep: pending (Polling every ' + config.pollingMs + 'ms)'));
+              saveJobs();
+              renderAll();
+
+              const t4 = setTimeout(() => {
+                if (job.status !== 'pending') return;
+                if (job.simMode === 'doc_retry' && !job.retriedOnce) {
+                  job.retriedOnce = true;
+                  job.status = 'docUpload';
+                  job.logs.push(formatLog('DOC_REJECTED', 'rejectionReasons: [DOCUMENT_BLURRY] -> Re-entering docUpload'));
+                  job.logs.push(formatLog('DOC_REUPLOAD', 'Re-fetching original file and submitting new uploadUrl...'));
+                  saveJobs();
+                  renderAll();
+
+                  const t5 = setTimeout(() => {
+                    if (job.status !== 'docUpload') return;
+                    finishJob(job, 'verified', 'VERIFIED', 'Verification approved (verified) after retry.');
+                  }, 1800);
+                  timers.set(job.id, t5);
+                } else if (job.simMode === 'failed') {
+                  finishJob(job, 'failed', 'ERROR_TERMINAL', 'currentStep: error, errorIds: [docReviewLimitExceeded]');
+                } else {
+                  finishJob(job, 'verified', 'VERIFIED', 'Verification approved (currentStep: success / verified).');
+                }
+              }, Math.min(config.pollingMs, 2500));
+              timers.set(job.id, t4);
+            }, 1500);
+            timers.set(job.id, t3);
+          }, 1500);
+          timers.set(job.id, t2);
+        }, 1200);
+        timers.set(job.id, t1);
+      }
+
+      function finishJob(job, finalStatus, code, msg) {
+        clearJobTimer(job.id);
+        job.status = finalStatus;
+        job.step = 4;
+        job.logs.push(formatLog(code, msg));
+        saveJobs();
+        scheduleQueue();
+      }
+
+      function renderQueue() {
+        const activeCount = getActiveCount();
+        headerConcurrency.textContent = activeCount + ' / ' + config.concurrency;
+        queueCountBadge.textContent = String(jobs.length);
+
+        const filtered = jobs.filter(j => {
+          if (currentFilter === 'all') return true;
+          if (currentFilter === 'active') return j.status === 'queued' || isActiveStatus(j.status);
+          if (currentFilter === 'verified') return j.status === 'verified';
+          if (currentFilter === 'stopped') return j.status === 'stopped' || j.status === 'failed';
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          queueList.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">لا توجد مهام مطابقة للتصفية الحالية.</div>';
+          return;
+        }
+
+        queueList.innerHTML = filtered.map(job => {
+          const meta = STATUS_META[job.status] || STATUS_META.queued;
+          const isSelected = job.id === selectedJobId;
+          return `
+            <button type="button" data-job-id="${escapeHtml(job.id)}" class="job-row w-full text-right px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors ${isSelected ? 'bg-indigo-50/60 border-r-4 border-indigo-600' : ''}">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-900 truncate" dir="ltr">${escapeHtml(job.firstName)} ${escapeHtml(job.lastName)}</span>
+                  <span class="text-[11px] font-mono-code text-slate-400 truncate" dir="ltr">#${escapeHtml(job.id.slice(0, 12))}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono-code truncate" dir="ltr">${escapeHtml(job.email)}</div>
+              </div>
+              <span class="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${meta.cls}">
+                ${meta.label}
+              </span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      function renderInspector() {
+        const job = jobs.find(j => j.id === selectedJobId);
+        if (!job) {
+          inspectorEmpty.classList.remove('hidden');
+          inspectorBody.classList.add('hidden');
+          inspectorActions.classList.add('hidden');
+          inspectorStatusBadge.classList.add('hidden');
+          inspectorJobId.textContent = 'اختر مهمة من الطابور لعرض التفاصيل';
+          return;
+        }
+
+        inspectorEmpty.classList.add('hidden');
+        inspectorBody.classList.remove('hidden');
+        inspectorActions.classList.remove('hidden');
+
+        const meta = STATUS_META[job.status] || STATUS_META.queued;
+        inspectorJobId.textContent = 'verificationId: ' + job.id;
+        inspectorStatusBadge.textContent = meta.label;
+        inspectorStatusBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold border ' + meta.cls;
+
+        const canStop = job.status === 'queued' || isActiveStatus(job.status);
+        const canResume = job.status === 'stopped';
+        const canDelete = !canStop;
+
+        btnJobStop.disabled = !canStop;
+        btnJobStop.classList.toggle('opacity-40', !canStop);
+        btnJobResume.disabled = !canResume;
+        btnJobResume.classList.toggle('opacity-40', !canResume);
+        btnJobDelete.disabled = !canDelete;
+        btnJobDelete.classList.toggle('opacity-40', !canDelete);
+
+        const stepIds = ['step-status', 'step-browser', 'step-upload', 'step-result'];
+        stepIds.forEach((elId, idx) => {
+          const el = document.getElementById(elId);
+          const stepNum = idx + 1;
+          if (job.status === 'failed' && stepNum === 4) {
+            el.className = 'p-2 rounded-lg border text-[11px] font-semibold bg-rose-50 border-rose-200 text-rose-700';
+          } else if (job.step > stepNum || (job.status === 'verified' && stepNum === 4)) {
+            el.className = 'p-2 rounded-lg border text-[11px] font-semibold bg-emerald-50 border-emerald-200 text-emerald-700';
+          } else if (job.step === stepNum && isActiveStatus(job.status)) {
+            el.className = 'p-2 rounded-lg border text-[11px] font-semibold bg-indigo-50 border-indigo-300 text-indigo-700 animate-pulse';
+          } else {
+            el.className = 'p-2 rounded-lg border text-[11px] font-medium bg-slate-50 border-slate-200 text-slate-500';
+          }
+        });
+
+        document.getElementById('meta-name').textContent = job.firstName + ' ' + job.lastName;
+        document.getElementById('meta-email').textContent = job.email;
+        document.getElementById('meta-dob').textContent = job.birthDate;
+        document.getElementById('meta-proxy').textContent = job.proxy ? job.proxy : 'Direct';
+        document.getElementById('meta-doc-source').textContent = 'مصدر المستند: ' + job.docSourceLabel;
+
+        pollingIndicator.textContent = isActiveStatus(job.status) ? 'Polling: ' + config.pollingMs + 'ms' : 'Idle';
+
+        inspectorLogs.innerHTML = job.logs.map(l => `
+          <div>
+            <span class="text-slate-500">[${escapeHtml(l.time)}]</span>
+            <span class="text-indigo-400 font-semibold">[${escapeHtml(l.code)}]</span>
+            <span class="text-slate-200">${escapeHtml(l.msg)}</span>
+          </div>
+        `).join('');
+        inspectorLogs.scrollTop = inspectorLogs.scrollHeight;
+      }
+
+      function renderAll() {
+        renderQueue();
+        renderInspector();
+      }
+
+      function populateConfigForm() {
+        document.getElementById('cfg-country').value = config.country;
+        document.getElementById('cfg-org-name').value = config.organizationName;
+        document.getElementById('cfg-email-domain').value = config.emailDomain;
+        document.getElementById('cfg-concurrency').value = config.concurrency;
+        document.getElementById('cfg-polling').value = config.pollingMs;
+        document.getElementById('cfg-ready-timeout').value = config.readyMs;
+        document.getElementById('cfg-doc-path').value = config.docPath;
+        document.getElementById('cfg-doc-url').value = config.docUrl;
+        document.getElementById('cfg-autofill').checked = !!config.autoFill;
+        document.getElementById('cfg-keepopen').checked = !!config.keepOpen;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      tabWorkbench.addEventListener('click', () => switchTab('workbench'));
+      tabConfig.addEventListener('click', () => { populateConfigForm(); switchTab('config'); });
+      tabDocs.addEventListener('click', () => switchTab('docs'));
+
+      inputFirstName.addEventListener('input', updateEmailPreview);
+      inputLastName.addEventListener('input', updateEmailPreview);
+      inputUrl.addEventListener('input', updateUrlPreview);
+
+      document.getElementById('btn-session-status').addEventListener('click', () => {
+        sessionAuthenticated = !sessionAuthenticated;
+        const dot = document.getElementById('session-dot');
+        const label = document.getElementById('session-label');
+        const btn = document.getElementById('btn-session-status');
+        if (sessionAuthenticated) {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+          label.textContent = 'الجلسة نشطة';
+          btn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          label.textContent = 'الجلسة مقفلة';
+          btn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100';
+        }
+      });
+
+      document.getElementById('btn-load-sample').addEventListener('click', () => {
+        const randId = Math.random().toString(16).slice(2, 10) + Math.random().toString(16).slice(2, 10);
+        inputUrl.value = 'https://services.sheerid.com/verify/67c8c14f/?verificationId=' + randId;
+        inputFirstName.value = 'Layla';
+        inputLastName.value = 'Hassan';
+        inputBirthDate.value = '2002-05-14';
+        inputProxy.value = '';
+        updateUrlPreview();
+        updateEmailPreview();
+        showToast('تمت تعبئة بيانات نموذجية جاهزة للاختبار.', 'info');
+      });
+
+      document.getElementById('btn-clear-form').addEventListener('click', () => {
+        jobForm.reset();
+        inputPassword.value = config.password;
+        updateUrlPreview();
+        updateEmailPreview();
+      });
+
+      jobForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!sessionAuthenticated) {
+          showToast('الجلسة مقفلة. قم بتفعيل الجلسة أولاً أو تحقق من كلمة المرور.', 'error');
+          return;
+        }
+        if (inputPassword.value !== config.password) {
+          showToast('كلمة مرور الوصول غير صحيحة (الافتراضية: JenkinWoo).', 'error');
+          return;
+        }
+        const verificationId = extractVerificationId(inputUrl.value);
+        if (!verificationId) {
+          showToast('تعذر استخراج verificationId من الرابط المدخل.', 'error');
+          return;
+        }
+        const existing = jobs.find(j => j.id === verificationId);
+        if (existing) {
+          selectedJobId = existing.id;
+          renderAll();
+          showToast('المعرف موجود مسبقاً في الطابور؛ تم تحديد المهمة الحالية.', 'warning');
+          return;
+        }
+
+        const docLabel = config.docUrl ? config.docUrl : (config.docPath || 'لم يُحدد مستند');
+        const newJob = {
+          id: verificationId,
+          url: inputUrl.value.trim(),
+          firstName: inputFirstName.value.trim(),
+          lastName: inputLastName.value.trim(),
+          email: generateEmail(inputFirstName.value, inputLastName.value, config.emailDomain),
+          birthDate: inputBirthDate.value,
+          proxy: inputProxy.value.trim(),
+          simMode: inputSimMode.value,
+          autoFill: config.autoFill,
+          organizationName: config.organizationName,
+          docSourceLabel: docLabel,
+          status: 'queued',
+          step: 0,
+          retriedOnce: false,
+          logs: [formatLog('ENQUEUED', 'Added to queue (verificationId=' + verificationId + ')')]
+        };
+
+        jobs.unshift(newJob);
+        selectedJobId = newJob.id;
+        saveJobs();
+        scheduleQueue();
+        showToast('تمت إضافة المهمة إلى الطابور بنجاح.', 'success');
+      });
+
+      queueList.addEventListener('click', (e) => {
+        const row = e.target.closest('.job-row');
+        if (!row) return;
+        selectedJobId = row.getAttribute('data-job-id');
+        renderAll();
+      });
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentFilter = btn.getAttribute('data-filter');
+          document.querySelectorAll('.filter-btn').forEach(b => {
+            b.className = b === btn
+              ? 'filter-btn px-2 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700'
+              : 'filter-btn px-2 py-1 rounded-md font-medium text-slate-600 hover:bg-slate-100';
+          });
+          renderQueue();
+        });
+      });
+
+      btnJobStop.addEventListener('click', () => {
+        const job = jobs.find(j => j.id === selectedJobId);
+        if (!job) return;
+        clearJobTimer(job.id);
+        job.status = 'stopped';
+        job.logs.push(formatLog('JOB_STOPPED', 'Cancelled by user; browser & proxy resources released.'));
+        saveJobs();
+        scheduleQueue();
+        showToast('تم إيقاف المهمة وتحرير خانة التزامن.', 'info');
+      });
+
+      btnJobResume.addEventListener('click', () => {
+        const job = jobs.find(j => j.id === selectedJobId);
+        if (!job || job.status !== 'stopped') return;
+        job.status = 'queued';
+        job.step = 0;
+        job.logs.push(formatLog('JOB_RESUMED', 'Re-queued at tail using original snapshot.'));
+        saveJobs();
+        scheduleQueue();
+        showToast('تمت إعادة المهمة إلى الطابور.', 'success');
+      });
+
+      btnJobDelete.addEventListener('click', () => {
+        const job = jobs.find(j => j.id === selectedJobId);
+        if (!job) return;
+        if (job.status === 'queued' || isActiveStatus(job.status)) {
+          showToast('HTTP 409 / JOB_ACTIVE: أوقف المهمة أولاً قبل الحذف.', 'error');
+          return;
+        }
+        jobs = jobs.filter(j => j.id !== job.id);
+        selectedJobId = jobs.length > 0 ? jobs[0].id : null;
+        saveJobs();
+        renderAll();
+        showToast('تم حذف المهمة من السجل المحلي.', 'info');
+      });
+
+      inputDocFile.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const job = jobs.find(j => j.id === selectedJobId);
+        if (job) {
+          job.docSourceLabel = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+          job.logs.push(formatLog('DOC_SELECTED', 'Selected local file: ' + job.docSourceLabel + ' (read-only, unmodified)'));
+          saveJobs();
+          renderInspector();
+          showToast('تم تحديد الملف للاختبار دون تعديل محتواه.', 'success');
+        }
+        e.target.value = '';
+      });
+
+      configForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const docPath = document.getElementById('cfg-doc-path').value.trim();
+        const docUrl = document.getElementById('cfg-doc-url').value.trim();
+        if (docPath && docUrl) {
+          showToast('يجب تعبئة document.path أو document.url فقط، وليس كليهما.', 'error');
+          return;
+        }
+        const conc = parseInt(document.getElementById('cfg-concurrency').value, 10);
+        if (!conc || conc < 1) {
+          showToast('يجب أن يكون حد التزامن عدداً صحيحاً موجباً.', 'error');
+          return;
+        }
+        config.country = document.getElementById('cfg-country').value.trim() || 'US';
+        config.organizationName = document.getElementById('cfg-org-name').value.trim() || 'Stanford University';
+        config.emailDomain = document.getElementById('cfg-email-domain').value.trim() || 'stanford.edu';
+        config.concurrency = conc;
+        config.pollingMs = Math.min(300000, Math.max(1000, parseInt(document.getElementById('cfg-polling').value, 10) || 5000));
+        config.readyMs = Math.min(300000, Math.max(5000, parseInt(document.getElementById('cfg-ready-timeout').value, 10) || 120000));
+        config.docPath = docPath;
+        config.docUrl = docUrl;
+        config.autoFill = document.getElementById('cfg-autofill').checked;
+        config.keepOpen = document.getElementById('cfg-keepopen').checked;
+        saveConfig();
+        updateEmailPreview();
+        scheduleQueue();
+        showToast('تم حفظ الإعدادات بنجاح.', 'success');
+      });
+
+      document.getElementById('btn-reset-config').addEventListener('click', () => {
+        config = Object.assign({}, DEFAULT_CONFIG);
+        saveConfig();
+        populateConfigForm();
+        updateEmailPreview();
+        showToast('تمت استعادة الإعدادات الافتراضية.', 'info');
+      });
+
+      document.getElementById('btn-export-config').addEventListener('click', () => {
+        const exportObj = {
+          app: 'sheerid',
+          country: config.country,
+          data: {
+            organization: {
+              name: config.organizationName,
+              emailDomain: config.emailDomain
+            }
+          },
+          document: config.docUrl ? { url: config.docUrl } : { path: config.docPath },
+          web: { concurrency: config.concurrency },
+          polling: { intervalMs: config.pollingMs },
+          browser: { autoFill: config.autoFill, keepOpen: config.keepOpen },
+          timeouts: { readyMs: config.readyMs }
+        };
+        const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'sheerid.local.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('تم تنزيل ملف sheerid.local.json.', 'success');
+      });
+
+      updateEmailPreview();
+      populateConfigForm();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
